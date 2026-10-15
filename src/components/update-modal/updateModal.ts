@@ -1,6 +1,7 @@
 import { marked } from "marked";
 import TemplateCache from "../../utils/templateCache";
 import Updater from "../../core/Updater";
+import { escapeHtml } from "../../utils/html";
 
 export async function getUpdateModalTemplate(currentVersion: string, latestVersion: string): Promise<string> {
     let template = TemplateCache.load(__dirname, 'update-modal');
@@ -9,7 +10,7 @@ export async function getUpdateModalTemplate(currentVersion: string, latestVersi
     const markdown = await marked(releaseNotes, { gfm: true, breaks: true });
 
     return template
-        .replace("{{ releaseNotes }}", markdown)
-        .replace(/\{\{\s*currentVersion\s*\}\}/g, currentVersion)
-        .replace(/\{\{\s*newVersion\s*\}\}/g, latestVersion);
+        .replace("{{ releaseNotes }}", () => markdown)
+        .replace(/\{\{\s*currentVersion\s*\}\}/g, () => escapeHtml(currentVersion))
+        .replace(/\{\{\s*newVersion\s*\}\}/g, () => escapeHtml(latestVersion));
 }

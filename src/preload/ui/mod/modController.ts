@@ -22,28 +22,30 @@ export const modController = {
         }
 
         const pluginBaseName = pluginName.split(FILE_EXTENSIONS.PLUGIN)[0];
+        // JSON.stringify produces a safe JS string literal even if the file name contains quotes
+        const pluginNameLiteral = JSON.stringify(pluginBaseName);
 
         const scopedScript = `
         (function() {
             const StremioEnhancedAPI = {
                 logger: {
-                    info: (message) => window.StremioEnhancedAPI.info('${pluginBaseName}', message),
-                    warn: (message) => window.StremioEnhancedAPI.warn('${pluginBaseName}', message),
-                    error: (message) => window.StremioEnhancedAPI.error('${pluginBaseName}', message)
+                    info: (message) => window.StremioEnhancedAPI.info(${pluginNameLiteral}, message),
+                    warn: (message) => window.StremioEnhancedAPI.warn(${pluginNameLiteral}, message),
+                    error: (message) => window.StremioEnhancedAPI.error(${pluginNameLiteral}, message)
                 },
-                getSetting: (key) => window.StremioEnhancedAPI.getSetting('${pluginBaseName}', key),
-                saveSetting: (key, value) => window.StremioEnhancedAPI.saveSetting('${pluginBaseName}', key, value),
-                registerSettings: (schema) => window.StremioEnhancedAPI.registerSettings('${pluginBaseName}', schema),
-                onSettingsSaved: (callback) => window.StremioEnhancedAPI.onSettingsSaved('${pluginBaseName}', callback),
+                getSetting: (key) => window.StremioEnhancedAPI.getSetting(${pluginNameLiteral}, key),
+                saveSetting: (key, value) => window.StremioEnhancedAPI.saveSetting(${pluginNameLiteral}, key, value),
+                registerSettings: (schema) => window.StremioEnhancedAPI.registerSettings(${pluginNameLiteral}, schema),
+                onSettingsSaved: (callback) => window.StremioEnhancedAPI.onSettingsSaved(${pluginNameLiteral}, callback),
                 
                 showAlert: window.StremioEnhancedAPI.showAlert,
-                showPrompt: (title, message, defaultValue) => window.StremioEnhancedAPI.showPrompt('${pluginBaseName}', title, message, defaultValue)
+                showPrompt: (title, message, defaultValue) => window.StremioEnhancedAPI.showPrompt(${pluginNameLiteral}, title, message, defaultValue)
             };
 
             try {
                 ${pluginContent}
             } catch (err) {
-                console.error('[ModController] Plugin crashed: ${pluginName}', err);
+                console.error('[ModController] Plugin crashed:', ${JSON.stringify(pluginName)}, err);
             }
         })();
         `;
@@ -159,7 +161,7 @@ export const modController = {
                     const handleCloseAndSave = () => {
                         schema.forEach(async (setting: PluginSettingSchema) => {
                             let value: any;
-                            const element = modalElement.querySelector(`[data-key="${setting.key}"]`);
+                            const element = modalElement.querySelector(`[data-key="${CSS.escape(setting.key)}"]`);
                             
                             if (!element) return;
 

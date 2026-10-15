@@ -1,6 +1,7 @@
 import { MetaData } from '../../interfaces/MetaData';
 import TemplateCache from '../../utils/templateCache';
 import ExtractMetaData from '../../utils/ExtractMetaData';
+import { escapeHtml, safeUrl } from '../../utils/html';
 
 interface ModMetaData {
     name: string;
@@ -21,9 +22,10 @@ export async function getModItemTemplate(
     
     // Generate logo block based on type
     let logoBlock = "";
+    const previewUrl = escapeHtml(safeUrl(metaData.preview));
 
     if(type === "Theme") {
-        if(!metaData.preview) {
+        if(!previewUrl) {
             // If no preview is provided for theme, use a placeholder
             logoBlock = `
         <svg class="icon-GxVbY" viewBox="0 0 24 24">
@@ -32,12 +34,12 @@ export async function getModItemTemplate(
         } else {
             // Use the preview image for theme logo
             logoBlock = `
-            <a href="${metaData.preview}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
-                <img class="logo-WrsGF" src="${metaData.preview}" alt="Theme Preview" loading="lazy">
+            <a href="${previewUrl}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
+                <img class="logo-WrsGF" src="${previewUrl}" alt="Theme Preview" loading="lazy">
             </a>`;
         }
     } else {
-        if(!metaData.preview) {
+        if(!previewUrl) {
              // If no preview is provided for plugin, use a placeholder
             logoBlock = `
             <svg class="icon-GxVbY" viewBox="0 0 512 512">
@@ -46,8 +48,8 @@ export async function getModItemTemplate(
         } else {
             // Use the preview image for plugin logo
             logoBlock = `
-            <a href="${metaData.preview}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
-                <img class="logo-WrsGF" src="${metaData.preview}" alt="Plugin Preview" loading="lazy">
+            <a href="${previewUrl}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
+                <img class="logo-WrsGF" src="${previewUrl}" alt="Plugin Preview" loading="lazy">
             </a>`;
         }
     }
@@ -67,14 +69,14 @@ export async function getModItemTemplate(
     const metaKeys = ['name', 'description', 'author', 'version'] as const;
     metaKeys.forEach(key => {
         const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-        template = template.replace(regex, metaData[key] || '');
+        template = template.replace(regex, () => escapeHtml(metaData[key]));
     });
 
     return template
         .replace(/\{\{\s*type\s*\}\}/g, type)
         .replace(/\{\{\s*actionbtnTitle\s*\}\}/g, installed ? "Uninstall" : "Install")
         .replace("{{ actionbtnClass }}", installed ? "uninstall-button-container-oV4Yo" : "install-button-container-yfcq5")
-        .replace("{{ download }}", metaData.download)
-        .replace("{{ repo }}", metaData.repo)
-        .replace("<!-- theme/plugin preview here -->", logoBlock)
+        .replace("{{ download }}", () => escapeHtml(safeUrl(metaData.download)))
+        .replace("{{ repo }}", () => escapeHtml(safeUrl(metaData.repo)))
+        .replace("<!-- theme/plugin preview here -->", () => logoBlock)
 }

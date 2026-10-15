@@ -1,15 +1,21 @@
 import Properties from "../../core/Properties";
 import { getLogger } from "../../utils/logger";
-import { STORAGE_KEYS } from "../../constants";
+import { STORAGE_KEYS, FILE_EXTENSIONS } from "../../constants";
 import { alertAPI } from "./alert";
 import ExtractMetaData from "../../utils/ExtractMetaData";
-import { join } from "path";
+import { basename, join } from "path";
 
 const logger = getLogger("applyThemeAPI");
 
 export const applyThemeAPI = {
     applyTheme: async (theme: string) => {
         logger.info("Attempting to apply " + theme);
+
+        // Only allow theme files directly inside the themes folder
+        if (theme !== "Default" && (typeof theme !== "string" || basename(theme) !== theme || !theme.endsWith(FILE_EXTENSIONS.THEME))) {
+            logger.warn(`Refusing to apply invalid theme name: ${theme}`);
+            return;
+        }
 
         if (theme !== "Default") {
             const themePath = join(Properties.themesPath, theme);

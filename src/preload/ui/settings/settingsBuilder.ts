@@ -7,6 +7,7 @@ import { getLogger } from "../../../utils/logger";
 import { SELECTORS, CLASSES, STORAGE_KEYS, FILE_EXTENSIONS } from "../../../constants";
 import { settingsAPI } from "../../api/settings";
 import { modController } from "../mod/modController";
+import { applyThemeAPI } from "../../api/applyTheme";
 
 const logger = getLogger("SettingsBuilder");
 
@@ -183,6 +184,11 @@ export const settingsBuilder = {
         const themeContainer = document.createElement("div");
         themeContainer.innerHTML = getThemeItemTemplate(fileName, metaData, currentTheme === fileName);
         themeContainer.setAttribute("name", `${fileName}-box`);
+
+        // Bound here instead of an inline onclick, so the file name never ends up inside JavaScript code
+        themeContainer.querySelector("[data-theme-file]")?.addEventListener("click", () => {
+            applyThemeAPI.applyTheme(fileName);
+        });
 
         document.querySelector(SELECTORS.THEMES_CATEGORY)?.appendChild(themeContainer);
         

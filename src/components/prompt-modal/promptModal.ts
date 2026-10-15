@@ -1,18 +1,19 @@
 import TemplateCache from '../../utils/templateCache';
+import { escapeHtml } from '../../utils/html';
 
 export function getPromptModalTemplate(
-    promptId: string, 
+    promptId: string,
     title: string,
     message: string,
     defaultValue?: string
 ): string {
-    const modalId = `prompt-modal-${promptId}`;
+    const modalId = escapeHtml(`prompt-modal-${promptId}`);
 
     const html = TemplateCache.load(__dirname, 'prompt-modal')
-        .replace(/\{\{\s*modalId\s*\}\}/g, modalId)
-        .replace(/\{\{\s*title\s*\}\}/g, title)
-        .replace(/\{\{\s*message\s*\}\}/g, message)
-        .replace(/\{\{\s*defaultValue\s*\}\}/g, defaultValue ?? "");
+        .replace(/\{\{\s*modalId\s*\}\}/g, () => modalId)
+        .replace(/\{\{\s*title\s*\}\}/g, () => escapeHtml(title))
+        .replace(/\{\{\s*message\s*\}\}/g, () => escapeHtml(message))
+        .replace(/\{\{\s*defaultValue\s*\}\}/g, () => escapeHtml(defaultValue));
 
     return html;
 }

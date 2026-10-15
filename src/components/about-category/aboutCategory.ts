@@ -1,4 +1,5 @@
 import TemplateCache from '../../utils/templateCache';
+import { escapeHtml } from '../../utils/html';
 import { VALID_RENDERERS } from '../../interfaces/RendererTypes';
 import { VALID_EXTERNAL_PLAYERS, type ExternalPlayer } from '../../interfaces/ExternalPlayerTypes';
 
@@ -15,7 +16,7 @@ export function getAboutCategoryTemplate(
     let template = TemplateCache.load(__dirname, 'about-category');
 
     template = template
-        .replace("{{ version }}", version)
+        .replace("{{ version }}", () => escapeHtml(version))
         .replace("{{ checkForUpdatesOnStartup }}", checkForUpdatesOnStartup ? "checked" : "")
         .replace("{{ discordrichpresence }}", discordRichPresence ? "checked" : "")
         .replace("{{ enableTransparentThemes }}", enableTransparentThemes ? "checked" : "")
@@ -38,8 +39,8 @@ export function getAboutCategoryTemplate(
     template = template
         .replace('{{ vlc_path_display }}', currentExternalPlayer === 'vlc' ? '' : 'none')
         .replace('{{ mpv_path_display }}', currentExternalPlayer === 'mpv' ? '' : 'none')
-        .replace('{{ vlc_custom_path }}', vlcCustomPath)
-        .replace('{{ mpv_custom_path }}', mpvCustomPath);
+        .replace('{{ vlc_custom_path }}', () => escapeHtml(vlcCustomPath))
+        .replace('{{ mpv_custom_path }}', () => escapeHtml(mpvCustomPath));
 
     return template;
 }

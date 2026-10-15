@@ -1,4 +1,5 @@
 import TemplateCache from "../../utils/templateCache";
+import { escapeHtml } from "../../utils/html";
 
 export async function getToastTemplate(id: string, title: string, message: string, status: "success" | "fail" | "info"): Promise<string> {
     let template = TemplateCache.load(__dirname, 'toast');
@@ -17,8 +18,8 @@ export async function getToastTemplate(id: string, title: string, message: strin
     }
     
     return template
-        .replace("{{ id }}", id)
-        .replace("{{ title }}", title)
-        .replace("{{ message }}", message)
+        .replace("{{ id }}", () => escapeHtml(id))
+        .replace("{{ title }}", () => escapeHtml(title))
+        .replace("{{ message }}", () => escapeHtml(message))
         .replace("{{ status }}", toastStatus);
 }
