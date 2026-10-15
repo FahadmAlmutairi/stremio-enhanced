@@ -3,7 +3,7 @@ import Helpers from "../../../utils/Helpers";
 import logger from "../../../utils/logger";
 import DiscordPresence from "../../../core/DiscordPresence";
 import { discordTracker } from "../discordTracker";
-import { STORAGE_KEYS, IPC_CHANNELS, CLASSES, PLAYER_PATH_STORAGE_KEY } from "../../../constants";
+import { STORAGE_KEYS, IPC_CHANNELS, CLASSES } from "../../../constants";
 import { gpuRendererAPI } from "../../api/gpuRenderer";
 import { externalPlayerAPI } from "../../api/externalPlayer";
 import { alertAPI } from "../../api/alert";
@@ -97,12 +97,11 @@ export function setupExternalPlayerDropdown() {
             if (vlcPathOption) vlcPathOption.style.display = selectedValue === 'vlc' ? '' : 'none';
             if (mpvPathOption) mpvPathOption.style.display = selectedValue === 'mpv' ? '' : 'none';
 
-            if (selectedValue !== 'disabled') {
-                const customPath = localStorage.getItem(PLAYER_PATH_STORAGE_KEY[selectedValue]);
+            if (selectedValue === 'vlc' || selectedValue === 'mpv') {
+                const paths = await externalPlayerAPI.getExternalPlayerPaths();
 
-                if (!customPath) {
-                    const paths = await externalPlayerAPI.getExternalPlayerPaths();
-                    const playerPath = paths[selectedValue as keyof typeof paths];
+                if (!paths.custom[selectedValue]) {
+                    const playerPath = paths[selectedValue];
                     if (!playerPath) {
                         await alertAPI.showAlert(
                             "warning",
@@ -118,22 +117,26 @@ export function setupExternalPlayerDropdown() {
 }
 
 export function setupExternalPlayerPathInputs() {
-    setupPathInput('external-player-vlc-path', STORAGE_KEYS.EXTERNAL_PLAYER_VLC_PATH, 'VLC');
-    setupPathInput('external-player-mpv-path', STORAGE_KEYS.EXTERNAL_PLAYER_MPV_PATH, 'MPV');
+    setupPathInput('external-player-vlc-path', 'vlc');
+    setupPathInput('external-player-mpv-path', 'mpv');
 }
 
-function setupPathInput(elementId: string, storageKey: string, playerName: string) {
-    Helpers.waitForElm(`#${elementId}`).then((el) => {
+function setupPathInput(elementId: string, player: 'vlc' | 'mpv') {
+    Helpers.waitForElm(`#${elementId}`).then(async (el) => {
         const input = el as HTMLInputElement;
 
-        input.addEventListener('change', () => {
+        // The path is stored by the main process, which also asks the user to confirm new paths.
+        let savedValue = (await externalPlayerAPI.getExternalPlayerPaths()).custom[player] ?? '';
+
+        input.addEventListener('change', async () => {
             const value = input.value.trim();
-            if (value) {
-                localStorage.setItem(storageKey, value);
-                logger.info(`Custom ${playerName} path set to: ${value}`);
+            const result = await externalPlayerAPI.setExternalPlayerPath(player, value);
+
+            if (result.success) {
+                savedValue = value;
             } else {
-                localStorage.removeItem(storageKey);
-                logger.info(`Custom ${playerName} path cleared, using auto-detect`);
+                input.value = savedValue;
+                Helpers.createToast("extPlayerPathError", "External Player", result.error ?? "Failed to save the player path.", "fail");
             }
         });
     }).catch(() => {});

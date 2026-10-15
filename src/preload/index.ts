@@ -17,17 +17,17 @@ import { checkSettings } from "./ui/settings/settingsInjector";
 import { checkExternalPlayer } from "./ui/externalPlayerInterceptor";
 import { applyThemeAPI } from "./api/applyTheme";
 import { gpuRendererAPI } from "./api/gpuRenderer";
-import { externalPlayerAPI } from "./api/externalPlayer";
 import { pluginLogger } from "./api/pluginLogger";
 import Helpers from "../utils/Helpers";
 
+// Everything here is reachable by any script in the page (including plugins).
+// Don't expose APIs that can start programs on the user's machine (e.g. externalPlayerAPI).
 export const stremioEnhancedAPI = {
     ...alertAPI,
     ...settingsAPI,
     ...pluginLogger,
     ...applyThemeAPI,
     ...gpuRendererAPI,
-    ...externalPlayerAPI,
 };
 
 

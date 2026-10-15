@@ -45,9 +45,9 @@ async function launchExternal(player: ExternalPlayer): Promise<void> {
         
         // Navigate back before launching to prevent the built-in player from loading
         history.back();
-        const customPath = localStorage.getItem(PLAYER_PATH_STORAGE_KEY[player]);
-        
-        const result = await externalPlayerAPI.launchExternalPlayer(player, streamUrl, customPath || undefined);
+        await migrateLegacyPlayerPath(player);
+
+        const result = await externalPlayerAPI.launchExternalPlayer(player, streamUrl);
         
         if (result.success) {
             Helpers.createToast("extPlayerLaunch", "External Player", `Opening stream in ${player.toUpperCase()}...`, "success");
@@ -58,4 +58,18 @@ async function launchExternal(player: ExternalPlayer): Promise<void> {
     } finally {
         isLaunching = false;
     }
+}
+
+// Custom player paths used to be stored in localStorage, where any script in the page could change them.
+// Move an existing one to the main process once; the main process asks the user to confirm it.
+async function migrateLegacyPlayerPath(player: ExternalPlayer): Promise<void> {
+    const storageKey = PLAYER_PATH_STORAGE_KEY[player];
+    if (!storageKey) return;
+
+    const legacyPath = localStorage.getItem(storageKey);
+    if (!legacyPath) return;
+
+    localStorage.removeItem(storageKey);
+    const result = await externalPlayerAPI.setExternalPlayerPath(player, legacyPath);
+    if (!result.success) logger.warn(`Legacy custom ${player} path was not migrated: ${result.error}`);
 }

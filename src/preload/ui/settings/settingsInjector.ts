@@ -24,6 +24,7 @@ import {
 import { type ExternalPlayer } from "../../../interfaces/ExternalPlayerTypes";
 import { modController } from "../mod/modController";
 import { gpuRendererAPI } from "../../api/gpuRenderer";
+import { externalPlayerAPI } from "../../api/externalPlayer";
 
 function writeAbout(): void {
     Helpers.waitForElm(SELECTORS.ABOUT_CATEGORY).then(async () => {
@@ -33,8 +34,9 @@ function writeAbout(): void {
         const discordRpc = localStorage.getItem(STORAGE_KEYS.DISCORD_RPC) === "true";
         const currentAngle = await gpuRendererAPI.getGpuRenderer();
         const currentExternalPlayer = (localStorage.getItem(STORAGE_KEYS.EXTERNAL_PLAYER) ?? 'disabled') as ExternalPlayer;
-        const vlcCustomPath = localStorage.getItem(STORAGE_KEYS.EXTERNAL_PLAYER_VLC_PATH) ?? '';
-        const mpvCustomPath = localStorage.getItem(STORAGE_KEYS.EXTERNAL_PLAYER_MPV_PATH) ?? '';
+        const { custom: customPlayerPaths } = await externalPlayerAPI.getExternalPlayerPaths();
+        const vlcCustomPath = customPlayerPaths.vlc ?? '';
+        const mpvCustomPath = customPlayerPaths.mpv ?? '';
 
         const aboutCategory = document.querySelector(SELECTORS.ABOUT_CATEGORY);
         if (aboutCategory) {

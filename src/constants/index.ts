@@ -65,7 +65,7 @@ export const STORAGE_KEYS = {
     EXTERNAL_PLAYER_MPV_PATH: 'externalPlayerMpvPath',
 } as const;
 
-/** Maps a player name to its custom-path storage key. */
+/** Maps a player name to its legacy custom-path storage key (custom paths are now stored by the main process). */
 export const PLAYER_PATH_STORAGE_KEY: Record<string, string> = {
     vlc: STORAGE_KEYS.EXTERNAL_PLAYER_VLC_PATH,
     mpv: STORAGE_KEYS.EXTERNAL_PLAYER_MPV_PATH,
@@ -93,6 +93,7 @@ export const IPC_CHANNELS = {
     SHOW_ALERT: 'show-alert',
     LAUNCH_EXTERNAL_PLAYER: 'launch-external-player',
     GET_EXTERNAL_PLAYER_PATHS: 'get-external-player-paths',
+    SET_EXTERNAL_PLAYER_PATH: 'set-external-player-path',
 } as const;
 
 // File extensions for mods
